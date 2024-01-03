@@ -2,9 +2,9 @@
 ---
 version: "{{ compose_schema_version | default('2') }}"
 
-{% if containers_network is defined %}
+{% if container_network is defined %}
 networks:
-{% for network in containers_network %}
+{% for network in container_network %}
 {% if network.active %}
   {{ network.network_name }}:
     name: {{ container.network_name }}
