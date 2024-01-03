@@ -1,6 +1,29 @@
 {{ ansible_managed | comment }}
 ---
 version: "{{ compose_schema_version | default('2') }}"
+
+{% if containers_network is defined %}
+networks:
+{% for network in containers_network %}
+{% if network.active %}
+  {{ network.network_name }}:
+    name: {{ container.network_name }}
+{% if network.internal is defined %}
+    internal: {{ network.internal | string }}
+{% endif %}
+{% if network.external is defined %}
+    external: {{ network.external | string }}
+{% endif %}
+{% if network.driver is defined %}
+    driver: {{ network.driver }}
+{% endif %}
+{% if network.labels is defined %}
+    labels:
+{% for label in network.labels %}
+      - {{ label }}
+{% endfor %}
+{% endif %}
+
 services:
 {% for container in containers %}
 {% if container.active %}
