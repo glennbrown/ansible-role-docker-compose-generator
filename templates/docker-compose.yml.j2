@@ -23,6 +23,8 @@ networks:
       - {{ label }}
 {% endfor %}
 {% endif %}
+{% endif %}
+{% endfor %}
 
 services:
 {% for container in containers %}
