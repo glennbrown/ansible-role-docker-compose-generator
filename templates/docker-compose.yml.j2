@@ -9,10 +9,10 @@ networks:
   {{ network.network_name }}:
     name: {{ network.name | default(network.network_name) }}
 {% if network.internal is defined %}
-    internal: {{ network.internal | string }}
+    internal: {{ network.internal | bool | lower }}
 {% endif %}
 {% if network.external is defined %}
-    external: {{ network.external | string }}
+    external: {{ network.external | bool | lower }}
 {% endif %}
 {% if network.driver is defined %}
     driver: {{ network.driver }}
