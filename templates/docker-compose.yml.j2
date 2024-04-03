@@ -1,7 +1,9 @@
 {{ ansible_managed | comment }}
 ---
-version: "{{ compose_schema_version | default('2') }}"
+{% if compose_schema_version is defined %}
+version: "{{ compose_schema_version }}"
 
+{% endif %}
 {% if container_networks is defined %}
 networks:
 {% for network in container_networks %}
