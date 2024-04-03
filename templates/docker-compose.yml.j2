@@ -90,6 +90,12 @@ services:
       - {{ port }}
 {% endfor %}
 {% endif %}
+{% if container.expose is defined %}
+    expose:
+{% for expose_port in container.expose %}
+      - {{ expose_port }}
+{% endfor %}
+{% endif %}
 {% if ( container.environment is defined ) or ( container.include_global_env_vars is defined and container.include_global_env_vars) %}
     environment:
 {% if container.include_global_env_vars | default(false) %}
@@ -106,7 +112,12 @@ services:
 {% if container.depends_on is defined %}
     depends_on:
 {% for dependent in container.depends_on %}
+{% if dependent is mapping %}
+      {{ dependent.service}}:
+        condition: {{ dependent.condition }}
+{% else %}
       - {{ dependent }}
+{% endif %}
 {% endfor %}
 {% endif %}
 {% if container.hostname is defined %}
@@ -186,11 +197,34 @@ services:
       - {{ envfile }}
 {% endfor %}
 {% endif %}
-{% if container.user is defined %}
-    user: {{ container.user }}
+{% if container.healthcheck is defined %}
+    healthcheck:
+      test: "{{ container.healthcheck.test }}"
+{% if container.healthcheck.interval is defined %}
+      interval: {{ container.healthcheck.interval }}
+{% endif %}
+{% if container.healthcheck.timeout is defined %}
+      timeout: {{ container.healthcheck.timeout }}
+{% endif %}
+{% if container.healthcheck.retries is defined %}
+      retries: {{ container.healthcheck.retries }}
+{% endif %}
+      start_period: {{ container.healthcheck.start_period }}
+{% endif %}
+{% if container.deploy.resources.reservations.devices is defined %}
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: {{ container.deploy.resources.reservations.devices.driver.count | default("1") }}
+            capabilities: [gpu]
 {% endif %}
 {% if container.restart is defined %}
     restart: {{ container.restart }}
+{% endif %}
+{% if container.stop_grace_period is defined %}
+    stop_grace_period: {{ container.stop_grace_period }}
 {% endif %}
 {% endif %}
 {% endfor %}
