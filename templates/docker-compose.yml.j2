@@ -40,6 +40,9 @@ services:
       - {{ host }}
 {% endfor %}
 {% endif %}
+{% if container.user is defined %}
+    user: {{ container.user }}
+{% endif %}
 {% if container.network_mode is defined %}
     network_mode: {{ container.network_mode }}
 {% endif %}
