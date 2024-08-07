@@ -1,5 +1,30 @@
 {{ ansible_managed | comment }}
 ---
+{% if container_networks is defined %}
+networks:
+{% for network in container_networks %}
+{% if network.active %}
+  {{ network.network_name }}:
+    name: {{ network.name | default(network.network_name) }}
+{% if network.internal is defined %}
+    internal: {{ network.internal | bool | lower }}
+{% endif %}
+{% if network.external is defined %}
+    external: {{ network.external | bool | lower }}
+{% endif %}
+{% if network.driver is defined %}
+    driver: {{ network.driver }}
+{% endif %}
+{% if network.labels is defined %}
+    labels:
+{% for label in network.labels %}
+      - {{ label }}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
 services:
 {% for container in containers %}
 {% if container.active %}
@@ -11,9 +36,18 @@ services:
 {% for host in container.extra_hosts %}
       - {{ host }}
 {% endfor %}
+{% if container.user is defined %}
+    user: {{ container.user }}
+{% endif %}
 {% endif %}
 {% if container.network_mode is defined %}
     network_mode: {{ container.network_mode }}
+{% endif %}
+{% if container.networks is defined %}
+    networks:
+{% for network in container.networks %}
+      - {{ network }}
+{% endfor %}
 {% endif %}
 {% if container.build is defined %}
     build: {{ container.build }}
