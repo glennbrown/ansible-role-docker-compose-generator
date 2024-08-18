@@ -36,7 +36,7 @@ services:
 {% for host in container.extra_hosts %}
       - {{ host }}
 {% endfor %}
-{% if container.user is defined %}
+{% if container.user %}
     user: {{ container.user }}
 {% endif %}
 {% endif %}
