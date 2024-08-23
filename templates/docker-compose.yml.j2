@@ -36,9 +36,9 @@ services:
 {% for host in container.extra_hosts %}
       - {{ host }}
 {% endfor %}
-{% if container.user %}
-    user: {{ container.user }}
 {% endif %}
+{% if container.user is defined %}
+    user: {{ container.user }}
 {% endif %}
 {% if container.network_mode is defined %}
     network_mode: {{ container.network_mode }}
