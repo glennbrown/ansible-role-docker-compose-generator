@@ -137,6 +137,22 @@ services:
 {% endfor %}
 {% endif %}
 {% endif %}
+{% if container.stdin_open is defined %}
+    stdin_open: {{ container.stdin_open }}
+{% endif %}
+{% if container.tty is defined %}
+    tty: {{ container.tty }}
+{% endif %}
+{% if container.entrypoint is defined %}
+{% if container.entrypoint is string %}
+    entrypoint: {{ container.entrypoint }}
+{% else %}
+    entrypoint:
+{% for entrypoint in container.entrypoint %}
+      - {{ entrypoint }}
+{% endfor %}
+{% endif %}
+{% endif %}
 {% if container.security_opt is defined %}
     security_opt:
 {% for sec_opt in container.security_opt %}
@@ -219,9 +235,22 @@ services:
       resources:
         reservations:
           devices:
-          - driver: nvidia
-            count: {{ container.deploy.resources.reservations.devices.driver.count | default("1") }}
-            capabilities: [gpu]
+{% for device in container.deploy.resources.reservations.devices %}
+            - driver: {{ device.driver }}
+{% if device.device_ids is defined %}
+              device_ids:
+{% for device_id in device.device_ids %}
+                - {{ device_id }}
+{% endfor %}
+{% else %}
+    deploy:
+        resources:
+        reservations:
+            devices:
+            - count: {{ container.deploy.resources.reservations.devices[0].driver.count | default("1") }}
+                capabilities: [gpu]
+{% endif %}
+{% endfor %}
 {% endif %}
 {% if container.restart is defined %}
     restart: {{ container.restart }}
