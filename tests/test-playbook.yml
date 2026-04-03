@@ -7,8 +7,8 @@
   vars:
     services_directory: "{{ playbook_dir }}/services/"
     docker_compose_generator_output_path: "{{ playbook_dir }}/output"
-    docker_compose_generator_uid: "{{ ansible_user_uid }}"
-    docker_compose_generator_gid: "{{ ansible_user_gid }}"
+    docker_compose_generator_uid: "{{ ansible_facts['user_uid'] }}"
+    docker_compose_generator_gid: "{{ ansible_facts['user_gid'] }}"
     docker_compose_hostname: "test-app"
 
   pre_tasks:
@@ -122,8 +122,8 @@
   vars:
     services_directory: "{{ playbook_dir }}/services/"
     docker_compose_generator_output_path: "{{ playbook_dir }}/output-stack"
-    docker_compose_generator_uid: "{{ ansible_user_uid }}"
-    docker_compose_generator_gid: "{{ ansible_user_gid }}"
+    docker_compose_generator_uid: "{{ ansible_facts['user_uid'] }}"
+    docker_compose_generator_gid: "{{ ansible_facts['user_gid'] }}"
     docker_compose_hostname: "test-stack-app"
     docker_compose_generator_output_mode: "stack"
 

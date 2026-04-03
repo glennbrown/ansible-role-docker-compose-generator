@@ -11,6 +11,8 @@
   file:
     path: "{{ docker_compose_generator_output_path }}"
     state: directory
+    owner: "{{ docker_compose_generator_uid }}"
+    group: "{{ docker_compose_generator_gid }}"
   when: docker_compose_generator_output_mode == 'stack'
 
 - name: Find stack directories (stack mode)
