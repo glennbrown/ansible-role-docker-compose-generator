@@ -113,3 +113,100 @@
     - name: All tests passed
       debug:
         msg: "All compose generator tests passed successfully!"
+
+- name: Test stack mode
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    services_directory: "{{ playbook_dir }}/services/"
+    docker_compose_generator_output_path: "{{ playbook_dir }}/output-stack"
+    docker_compose_generator_uid: "{{ ansible_user_uid }}"
+    docker_compose_generator_gid: "{{ ansible_user_gid }}"
+    docker_compose_hostname: "test-stack-app"
+    docker_compose_generator_output_mode: "stack"
+
+  pre_tasks:
+    - name: Gather minimal facts
+      setup:
+        gather_subset:
+          - "!all"
+          - user
+
+  roles:
+    - role: "{{ playbook_dir }}/.."
+
+  post_tasks:
+    - name: Read generated web stack
+      slurp:
+        src: "{{ docker_compose_generator_output_path }}/web/compose.yaml"
+      register: web_compose_raw
+
+    - name: Parse web stack
+      set_fact:
+        web_compose: "{{ web_compose_raw.content | b64decode | from_yaml }}"
+
+    - name: Read generated data stack
+      slurp:
+        src: "{{ docker_compose_generator_output_path }}/data/compose.yaml"
+      register: data_compose_raw
+
+    - name: Parse data stack
+      set_fact:
+        data_compose: "{{ data_compose_raw.content | b64decode | from_yaml }}"
+
+    - name: Verify web stack services
+      assert:
+        that:
+          - "'nginx' in web_compose.services"
+          - "'certbot' in web_compose.services"
+          - web_compose.services | length == 2
+        fail_msg: "web stack services incorrect"
+        success_msg: "web stack services OK"
+
+    - name: Verify web stack isolation (no data services)
+      assert:
+        that:
+          - "'postgres' not in web_compose.services"
+          - "'redis' not in web_compose.services"
+        fail_msg: "web stack contains data stack services — stacks not isolated"
+        success_msg: "web stack isolation OK"
+
+    - name: Verify data stack services
+      assert:
+        that:
+          - "'postgres' in data_compose.services"
+          - "'redis' in data_compose.services"
+          - data_compose.services | length == 2
+        fail_msg: "data stack services incorrect"
+        success_msg: "data stack services OK"
+
+    - name: Verify data stack isolation (no web services)
+      assert:
+        that:
+          - "'nginx' not in data_compose.services"
+          - "'certbot' not in data_compose.services"
+        fail_msg: "data stack contains web stack services — stacks not isolated"
+        success_msg: "data stack isolation OK"
+
+    - name: Verify no top-level compose.yaml (stack mode must not create one)
+      stat:
+        path: "{{ docker_compose_generator_output_path }}/compose.yaml"
+      register: toplevel_stat
+
+    - name: Assert no top-level compose.yaml
+      assert:
+        that:
+          - not toplevel_stat.stat.exists
+        fail_msg: "Stack mode created a top-level compose.yaml"
+        success_msg: "No top-level compose.yaml OK"
+
+    - name: Clean up stack output
+      file:
+        path: "{{ docker_compose_generator_output_path }}"
+        state: absent
+
+    - name: All stack mode tests passed
+      debug:
+        msg: "All stack mode tests passed successfully!"
