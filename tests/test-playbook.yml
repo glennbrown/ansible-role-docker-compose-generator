@@ -202,6 +202,30 @@
         fail_msg: "Stack mode created a top-level compose.yaml"
         success_msg: "No top-level compose.yaml OK"
 
+    - name: Check for env file in data stack output
+      stat:
+        path: "{{ docker_compose_generator_output_path }}/data/.env"
+      register: data_env_stat
+
+    - name: Verify data stack env file was copied
+      assert:
+        that:
+          - data_env_stat.stat.exists
+        fail_msg: "data stack .env file was not copied to output"
+        success_msg: "data stack .env file OK"
+
+    - name: Check for env file in web stack output (should not exist)
+      stat:
+        path: "{{ docker_compose_generator_output_path }}/web/.env"
+      register: web_env_stat
+
+    - name: Verify web stack has no env file
+      assert:
+        that:
+          - not web_env_stat.stat.exists
+        fail_msg: "web stack unexpectedly has a .env file in output"
+        success_msg: "web stack no .env file OK"
+
     - name: Clean up stack output
       file:
         path: "{{ docker_compose_generator_output_path }}"
