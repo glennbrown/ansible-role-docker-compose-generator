@@ -113,25 +113,9 @@ When enabled, the role will:
 
 This provides snapshot and replication benefits for your app configs.
 
-## Output Modes
-
-The role supports two output modes controlled by the `docker_compose_generator_output_mode` variable (default: `single`).
-
-### Single mode (default)
-
-All compose files under `services/<hostname>/` are merged into one file at `docker_compose_generator_output_path/compose.yaml`. This is the original behaviour.
-
-```yaml
-docker_compose_generator_output_mode: single
-```
-
-### Stack mode
+## Output
 
 Each subdirectory under `services/<hostname>/` is treated as a named "stack" and produces its own `compose.yaml` under a matching subdirectory of the output path. Services are merged within a stack but never across stacks.
-
-```yaml
-docker_compose_generator_output_mode: stack
-```
 
 Directory structure:
 
@@ -154,7 +138,7 @@ docker_compose_generator_output_path/
     └── compose.yaml
 ```
 
-`config-*` directories work the same way in stack mode — place them inside the relevant stack directory and they will be deployed when that stack is processed.
+`config-*` directories work the same way — place them inside the relevant stack directory and they will be deployed when that stack is processed.
 
 ## v1 of this role vs v2
 
