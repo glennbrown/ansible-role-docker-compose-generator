@@ -110,6 +110,50 @@
         fail_msg: "web stack unexpectedly has a .env file in output"
         success_msg: "web stack no .env file OK"
 
+    - name: Verify recursive config deployment (nested file in config-nginx)
+      stat:
+        path: /tmp/test-nginx-config/conf.d/default.conf
+      register: nested_nginx_stat
+
+    - name: Assert nested nginx config was deployed
+      assert:
+        that: nested_nginx_stat.stat.exists
+        fail_msg: "Nested config file not deployed recursively"
+        success_msg: "Recursive config deployment OK"
+
+    - name: Verify single-config default dest (data/config-redis)
+      stat:
+        path: "{{ docker_compose_generator_output_path }}/data/config/redis.conf"
+      register: redis_config_stat
+
+    - name: Assert redis config at default single-config path
+      assert:
+        that: redis_config_stat.stat.exists
+        fail_msg: "Single-config default dest not correct"
+        success_msg: "Single-config default dest OK"
+
+    - name: Verify multi-config default dest (web/config-app)
+      stat:
+        path: "{{ docker_compose_generator_output_path }}/web/config/app/app.conf"
+      register: app_config_stat
+
+    - name: Assert app config at default multi-config path
+      assert:
+        that: app_config_stat.stat.exists
+        fail_msg: "Multi-config default dest not correct"
+        success_msg: "Multi-config default dest OK"
+
+    - name: Verify secret file deployed with prefix stripped
+      stat:
+        path: "{{ docker_compose_generator_output_path }}/web/cloudflare.txt"
+      register: secret_stat
+
+    - name: Assert secret file deployed correctly
+      assert:
+        that: secret_stat.stat.exists
+        fail_msg: "Secret file was not deployed or prefix not stripped"
+        success_msg: "Secret file deployment OK"
+
     - name: Clean up stack output
       file:
         path: "{{ docker_compose_generator_output_path }}"

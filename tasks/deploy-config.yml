@@ -1,7 +1,25 @@
 ---
+- name: Check if .dest file exists for {{ config_dir.path | basename }}
+  stat:
+    path: "{{ config_dir.path }}/.dest"
+  delegate_to: localhost
+  become: false
+  register: dest_file_stat
+
 - name: Read .dest file for {{ config_dir.path | basename }}
   set_fact:
     config_dest: "{{ lookup('template', config_dir.path + '/.dest') | trim }}"
+  when: dest_file_stat.stat.exists
+
+- name: Set default destination for {{ config_dir.path | basename }}
+  set_fact:
+    config_dest: >-
+      {{ stack_output_path }}/config{%
+        if stack_config_dirs.files | length > 1
+      %}/{{ config_dir.path | basename | regex_replace('^config-', '') }}{%
+        endif
+      %}
+  when: not dest_file_stat.stat.exists
 
 - name: Get parent ZFS dataset for {{ config_dir.path | basename }}
   shell: "df --output=source {{ config_dest | dirname }} | tail -1"
@@ -26,19 +44,29 @@
     owner: "{{ docker_compose_generator_uid }}"
     group: "{{ docker_compose_generator_gid }}"
 
-- name: Find config files to copy (excluding .dest)
+- name: Find config files to deploy (excluding .dest, recursive)
   find:
     paths: "{{ config_dir.path }}"
     excludes: ".dest"
     file_type: file
+    recurse: yes
   delegate_to: localhost
   become: false
   register: config_files
 
+- name: Ensure parent directories exist for nested config files
+  file:
+    path: "{{ config_dest }}/{{ (item.path | replace(config_dir.path + '/', '')) | dirname }}"
+    state: directory
+    owner: "{{ docker_compose_generator_uid }}"
+    group: "{{ docker_compose_generator_gid }}"
+  loop: "{{ config_files.files }}"
+  when: (item.path | replace(config_dir.path + '/', '')) | dirname | length > 0
+
 - name: Template config files to destination
   template:
     src: "{{ item.path }}"
-    dest: "{{ config_dest }}/{{ item.path | basename }}"
+    dest: "{{ config_dest }}/{{ item.path | replace(config_dir.path + '/', '') }}"
     owner: "{{ docker_compose_generator_uid }}"
     group: "{{ docker_compose_generator_gid }}"
   loop: "{{ config_files.files }}"
