@@ -132,16 +132,16 @@
         fail_msg: "Single-config default dest not correct"
         success_msg: "Single-config default dest OK"
 
-    - name: Verify multi-config default dest (web/config-app)
+    - name: Verify relative .dest path resolved to stack output (web/config-app)
       stat:
-        path: "{{ docker_compose_generator_output_path }}/web/config/app/app.conf"
+        path: "{{ docker_compose_generator_output_path }}/web/app-config/app.conf"
       register: app_config_stat
 
-    - name: Assert app config at default multi-config path
+    - name: Assert app config at relative-dest path
       assert:
         that: app_config_stat.stat.exists
-        fail_msg: "Multi-config default dest not correct"
-        success_msg: "Multi-config default dest OK"
+        fail_msg: "Relative .dest path not resolved correctly"
+        success_msg: "Relative .dest resolution OK"
 
     - name: Verify secret file deployed with prefix stripped
       stat:

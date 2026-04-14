@@ -8,7 +8,13 @@
 
 - name: Read .dest file for {{ config_dir.path | basename }}
   set_fact:
-    config_dest: "{{ lookup('template', config_dir.path + '/.dest') | trim }}"
+    _config_dest_raw: "{{ lookup('template', config_dir.path + '/.dest') | trim }}"
+  when: dest_file_stat.stat.exists
+
+- name: Resolve .dest path for {{ config_dir.path | basename }}
+  set_fact:
+    config_dest: >-
+      {{ (stack_output_path + '/' + _config_dest_raw[2:]) if _config_dest_raw.startswith('./') else _config_dest_raw }}
   when: dest_file_stat.stat.exists
 
 - name: Set default destination for {{ config_dir.path | basename }}
